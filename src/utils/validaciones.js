@@ -27,6 +27,24 @@ function tieneTexto(valor) {
   return typeof valor === 'string' && valor.trim().length > 0;
 }
 
+function esCorreoValido(valor) {
+  if (!tieneTexto(valor)) return false;
+
+  const correo = valor.trim();
+  if (!/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[^\s@]+$/i.test(correo)) return false;
+
+  const [usuario, dominio] = correo.split('@');
+  if (usuario.startsWith('.') || usuario.endsWith('.') || usuario.includes('..')) return false;
+
+  const segmentos = dominio.split('.');
+  return segmentos.length >= 2
+    && segmentos.every((segmento) => /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i.test(segmento));
+}
+
+function esTelefonoValido(valor) {
+  return tieneTexto(valor) && /^[\d +()-]+$/.test(valor.trim()) && /\d/.test(valor);
+}
+
 function esFechaNacimientoValida(valor) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) return false;
 
@@ -57,9 +75,10 @@ export function validarInscripcion(formulario) {
     errores.fechaNacimiento = 'Ingresá una fecha de nacimiento válida, que no sea futura.';
   }
   if (!tieneTexto(formulario.domicilio)) errores.domicilio = 'Ingresá tu domicilio actual.';
-  if (!tieneTexto(formulario.telefono)) errores.telefono = 'Ingresá tu teléfono.';
-  if (!tieneTexto(formulario.correoElectronico)
-    || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formulario.correoElectronico.trim())) {
+  if (!esTelefonoValido(formulario.telefono)) {
+    errores.telefono = 'Ingresá un teléfono con números. Podés usar espacios, +, - y paréntesis.';
+  }
+  if (!esCorreoValido(formulario.correoElectronico)) {
     errores.correoElectronico = 'Ingresá un correo electrónico válido, por ejemplo nombre@correo.com.';
   }
 

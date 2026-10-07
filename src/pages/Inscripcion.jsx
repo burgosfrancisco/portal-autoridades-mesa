@@ -24,10 +24,18 @@ export default function Inscripcion() {
   const [confirmacion, setConfirmacion] = useState(null);
   const formularioRef = useRef(null);
   const confirmacionRef = useRef(null);
+  const errorGeneralRef = useRef(null);
 
   useEffect(() => {
     if (confirmacion) confirmacionRef.current?.focus();
   }, [confirmacion]);
+
+  useEffect(() => {
+    if (errorGeneral) {
+      errorGeneralRef.current?.focus();
+      errorGeneralRef.current?.scrollIntoView({ block: 'center', behavior: 'instant' });
+    }
+  }, [errorGeneral]);
 
   function cambiarCampo(evento) {
     const { name, value } = evento.target;
@@ -104,7 +112,11 @@ export default function Inscripcion() {
             <p className="mb-0">Estado de la solicitud: <strong>{confirmacion.estado}</strong>.</p>
           </div>
         )}
-        {errorGeneral && <p className="alert alert-danger" role="alert">{errorGeneral}</p>}
+        {errorGeneral && (
+          <p className="alert alert-danger" role="alert" tabIndex={-1} ref={errorGeneralRef}>
+            {errorGeneral}
+          </p>
+        )}
         {Object.keys(errores).length > 0 && (
           <p className="alert alert-warning" role="alert">Revisá los campos indicados antes de enviar.</p>
         )}
