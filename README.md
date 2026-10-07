@@ -1,8 +1,9 @@
 # Portal para Autoridades de Mesa
 
 TP universitario de Ingeniería de Software. Incluye la base del proyecto y
-CU2: listado de charlas precargadas y consulta de su detalle, y CU3: ubicación
-de la sede en un mapa a partir de una consulta a USIG. CU4 todavía no está implementado.
+CU2: listado de charlas precargadas y consulta de su detalle; CU3: ubicación
+de la sede en un mapa a partir de una consulta a USIG; y CU4: inscripción como
+postulante con validaciones y persistencia local.
 
 ## Ejecutar en Windows / PowerShell
 
@@ -27,17 +28,18 @@ En terminales que lo permitan, también se puede usar `npm` en lugar de `npm.cmd
 ## Estructura
 
 - `src/components/`: componentes compartidos, como la barra de navegación.
-- `src/pages/`: inicio, listado de charlas, detalle y página base de inscripción.
+- `src/pages/`: inicio, listado de charlas, detalle y formulario de inscripción.
 - `src/data/charlas.js`: única fuente de las charlas y sus sedes precargadas.
 - `src/services/usigService.js`: consulta a USIG y validación de su respuesta.
-- `src/utils/`: funciones auxiliares, como el formato de fechas.
-- `src/storage/`: reservado para la persistencia con localStorage.
+- `src/data/distritos.js`: lista predefinida de distritos electorales.
+- `src/utils/`: formato de fechas y validaciones del formulario.
+- `src/storage/solicitudesStorage.js`: acceso centralizado a localStorage y control de DNI duplicado.
 
 Rutas: `/`, `/charlas`, `/charlas/:id` y `/inscripcion`.
 
 React Router gestiona la navegación y Bootstrap aporta los estilos.
 Leaflet y React-Leaflet muestran la ubicación con una capa base de OpenStreetMap.
-No se usa localStorage ni un backend.
+CU4 usa localStorage. No hay backend ni base de datos externa.
 
 ## Datos de ejemplo de CU2
 
@@ -73,3 +75,35 @@ El CSS y las imágenes de los marcadores se importan desde Leaflet.
 La consulta tiene un límite de 15 segundos. Si hay problemas de red, una
 respuesta inválida, ninguna coincidencia o una dirección ambigua, se informa
 que el mapa no está disponible. El mapa requiere conexión a USIG y OpenStreetMap.
+
+## Inscripción de postulantes (CU4)
+
+El formulario exige distrito electoral, datos personales y de contacto y respuestas
+explícitas sobre antecedentes y afiliación. La agrupación política se exige solo
+cuando se declara afiliación. Las charlas son opcionales y provienen exclusivamente
+de `charlas.js`; se guardan sus IDs, sin copiar nombres, fechas ni sedes.
+
+`validaciones.js` comprueba campos vacíos, DNI de 6 a 8 dígitos significativos,
+formato de correo, fecha de nacimiento real y no futura, distrito de la lista y
+respuestas Sí/No. No aplica una edad mínima ni restricciones sobre caracteres
+del nombre. Los errores aparecen junto al campo y bloquean el guardado.
+
+`solicitudesStorage.js` vuelve a validar antes de guardar y compara el DNI
+normalizado (sin puntos, espacios ni ceros iniciales) contra las solicitudes
+existentes. Todas pertenecen a una única convocatoria actual y se almacenan como
+un arreglo JSON bajo `portal-autoridades-mesa:solicitudes:convocatoria-actual`.
+Los fallos de acceso o escritura se informan; los datos corruptos no se sobrescriben.
+
+Cada Solicitud contiene:
+
+- `id`, `fechaRegistro`, `estado: "Pendiente"` y `distritoElectoral`.
+- `postulante`: nombre, apellido, DNI, fecha de nacimiento, domicilio, teléfono y correo electrónico.
+- `antecedentes`: `fueAutoridadMesa` y `cumplioCapacitaciones`, como booleanos.
+- `afiliacionPolitica`: `afiliado` y, solo cuando corresponde, `agrupacion`.
+- `charlasInteres`: arreglo de IDs, que puede estar vacío.
+
+Al guardar se muestra la confirmación, se limpia el formulario y se deshabilita
+el envío hasta que se comience una nueva carga. Recargar la página conserva las
+solicitudes. El alcance de esta persistencia es el mismo navegador y origen
+(protocolo, host y puerto); por ejemplo, `localhost` y `127.0.0.1` tienen
+almacenamientos distintos. No se envían emails ni se aprueban o rechazan solicitudes.

@@ -6,8 +6,8 @@ export default function Home() {
       <div className="card-body p-4">
         <h1 className="h2">Portal para Autoridades de Mesa</h1>
         <p className="text-secondary">
-          Bienvenido al portal. Podés consultar las charlas de orientación.
-          La inscripción como postulante estará disponible próximamente.
+          Bienvenido al portal. Podés consultar las charlas de orientación,
+          conocer la ubicación de sus sedes e inscribirte como postulante.
         </p>
         <div className="d-flex flex-wrap gap-2">
           <Link className="btn btn-primary" to="/charlas">Charlas</Link>
